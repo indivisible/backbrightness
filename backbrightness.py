@@ -48,7 +48,8 @@ class XRandRBrightnessSetter(BrightnessSetter):
             crtc['id'] = None
 
         randr = self.randr
-        for crtc_id in randr.GetScreenResources(self.screen.root).reply().crtcs:
+        crtc_ids = randr.GetScreenResources(self.screen.root).reply().crtcs
+        for crtc_id in crtc_ids:
             crtc_info = randr.GetCrtcInfo(crtc_id, int(time.time())).reply()
             for output in crtc_info.outputs:
                 output_info = randr.GetOutputInfo(
@@ -61,7 +62,8 @@ class XRandRBrightnessSetter(BrightnessSetter):
                     crtc['id'] = crtc_id
                     if crtc['original_gamma'] is None:
                         reply = randr.GetCrtcGamma(crtc_id).reply()
-                        crtc['original_gamma'] = [reply.red, reply.green, reply.blue]
+                        crtc['original_gamma'] = [
+                                reply.red, reply.green, reply.blue]
 
     def connect(self):
         import xcffib
@@ -92,7 +94,12 @@ class XRandRBrightnessSetter(BrightnessSetter):
                 continue
 
             adjusted = self.generate_gamma_table(name, brightness)
-            randr.SetCrtcGamma(crtc['id'], len(adjusted[0]), adjusted[0], adjusted[1], adjusted[2])
+            randr.SetCrtcGamma(
+                    crtc['id'],
+                    len(adjusted[0]),
+                    adjusted[0],
+                    adjusted[1],
+                    adjusted[2])
         self.connection.flush()
 
 
@@ -126,7 +133,8 @@ class GnomeBrightnessSetter(BrightnessSetter):
                 crtc = self.crtcs[name]
                 crtc['id'] = crtc_id
                 if crtc['original_gamma'] is None:
-                    gamma = self.display_conf.GetCrtcGamma(self.serial, crtc_id)
+                    gamma = self.display_conf.GetCrtcGamma(
+                            self.serial, crtc_id)
                     crtc['original_gamma'] = gamma
 
     def set_brightness(self, brightness):
@@ -179,18 +187,21 @@ def main():
             '-s', '--sleep-time',
             type=float,
             default=1.0,
-            help='Time between two brightness updates. Lower is more responsive, but higher CPU usage.'
+            help='Time between two brightness updates. Lower is more '
+            'responsive, but higher CPU usage.'
             )
     parser.add_argument(
             'backlight_path',
             type=str,
-            help='Path for the intel acpi backlight. For example "/sys/class/backlight/intel_backlight"'
+            help='Path for the intel acpi backlight. For example '
+            '"/sys/class/backlight/intel_backlight"'
             )
     parser.add_argument(
             'outputs',
             type=str,
             nargs='+',
-            help="outputs whose brightness to adjust with randr. Check \"xrandr -q\" for values. Normally it should be eDP1 or eDP-1"
+            help='outputs whose brightness to adjust with randr. Check '
+            '"xrandr -q" for values. Normally it should be eDP1 or eDP-1'
             )
     parser.add_argument(
             '--setter-method',
