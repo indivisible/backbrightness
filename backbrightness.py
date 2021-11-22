@@ -145,8 +145,12 @@ class GnomeBrightnessSetter(BrightnessSetter):
                 continue
 
             gamma = self.generate_gamma_table(name, brightness)
-            self.display_conf.SetCrtcGamma(self.serial, crtc['id'], gamma[0],
-                                           gamma[1], gamma[2])
+            try:
+                self.display_conf.SetCrtcGamma(self.serial, crtc['id'],
+                                               gamma[0], gamma[1], gamma[2])
+            except Exception as e:
+                print(f'could not set gamma for {crtc["id"]}: {e}')
+                continue
 
 
 def translate_backlight(setter, backlight_path: Path, sleep_time: float):
